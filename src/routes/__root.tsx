@@ -86,6 +86,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "File Organizer Pro" },
+      { name: "twitter:description", content: "Local-first, offline-capable PWA to import, organize and track files by extension." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/dfd6743b-43b4-4683-9885-995512071373" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/dfd6743b-43b4-4683-9885-995512071373" },
     ],
     links: [
       {
