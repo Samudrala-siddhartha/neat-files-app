@@ -17,7 +17,14 @@ import {
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-const NAV = [
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+};
+
+const NAV: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/import", label: "Import Center", icon: Upload },
   { to: "/organizer", label: "Organizer", icon: FolderTree },
@@ -27,7 +34,7 @@ const NAV = [
   { to: "/logs", label: "Logs", icon: ScrollText },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
   { to: "/about", label: "About", icon: Info },
-] as const;
+];
 
 export function AppShell() {
   const { hydrate, ready, online, setOnline, files } = useApp();
