@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search as SearchIcon } from "lucide-react";
 import { useApp, formatBytes } from "@/lib/store";
+import { FilePreview } from "@/components/FilePreview";
+import type { StoredFile } from "@/lib/storage/db";
 
 export const Route = createFileRoute("/search")({
   head: () => ({
@@ -16,6 +18,7 @@ export const Route = createFileRoute("/search")({
 function SearchPage() {
   const files = useApp((s) => s.files);
   const [q, setQ] = useState("");
+  const [preview, setPreview] = useState<StoredFile | null>(null);
 
   const results = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -50,7 +53,7 @@ function SearchPage() {
       ) : (
         <ul className="rounded-xl border border-border bg-card divide-y divide-border">
           {results.map((f) => (
-            <li key={f.id} className="px-4 py-2 flex items-center justify-between text-sm">
+            <li key={f.id} onClick={() => setPreview(f)} className="px-4 py-2 flex items-center justify-between text-sm cursor-pointer hover:bg-accent/40">
               <span className="truncate">{f.name}</span>
               <span className="ml-2 flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="rounded bg-muted px-1.5 py-0.5 uppercase">{f.extension}</span>
@@ -60,6 +63,7 @@ function SearchPage() {
           ))}
         </ul>
       )}
+      {preview && <FilePreview file={preview} onClose={() => setPreview(null)} />}
     </div>
   );
 }
