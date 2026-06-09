@@ -131,7 +131,8 @@ function ImportCenter() {
 }
 
 function RecentImports() {
-  const files = useApp((s) => s.files.slice(0, 10));
+  const allFiles = useApp((s) => s.files);
+  const files = allFiles.slice(0, 10);
   if (!files.length) return null;
   return (
     <div className="rounded-xl border border-border bg-card p-5">
