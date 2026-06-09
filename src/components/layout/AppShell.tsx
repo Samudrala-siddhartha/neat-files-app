@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/sonner";
 
 type NavItem = {
   to: string;
@@ -106,6 +107,7 @@ export function AppShell() {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
+        <OfflineBanner />
         <header className="md:hidden flex items-center justify-between border-b border-border px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
             <div className="size-7 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 grid place-items-center">
@@ -143,6 +145,18 @@ export function AppShell() {
           })}
         </nav>
       </div>
+      <Toaster position="top-right" richColors />
+    </div>
+  );
+}
+
+function OfflineBanner() {
+  const online = useApp((s) => s.online);
+  if (online) return null;
+  return (
+    <div className="bg-amber-500/15 border-b border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs px-4 py-1.5 flex items-center gap-2">
+      <WifiOff className="size-3.5" />
+      You're offline — File Organizer Pro continues to work entirely on this device.
     </div>
   );
 }
