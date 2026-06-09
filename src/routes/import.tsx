@@ -34,7 +34,7 @@ function ImportCenter() {
           setProgress({ done: Math.min(i + batch, files.length), total: files.length });
         }
         toast.success(`Imported ${files.length} file${files.length > 1 ? "s" : ""}`);
-      } catch (e) {
+      } catch {
         toast.error("Some files failed to import");
       } finally {
         setBusy(false);
@@ -61,16 +61,11 @@ function ImportCenter() {
       </header>
 
       <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
+        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         className={`relative rounded-2xl border-2 border-dashed p-12 text-center transition ${
-          dragging
-            ? "border-primary bg-primary/5"
-            : "border-border bg-card hover:border-primary/40"
+          dragging ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40"
         }`}
       >
         <div className="mx-auto size-14 rounded-full bg-primary/10 grid place-items-center mb-4">
@@ -121,15 +116,10 @@ function ImportCenter() {
                 <Loader2 className="size-3 animate-spin" />
                 Importing…
               </span>
-              <span>
-                {progress.done} / {progress.total}
-              </span>
+              <span>{progress.done} / {progress.total}</span>
             </div>
             <div className="h-2 rounded-full bg-muted overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all"
-                style={{ width: `${(progress.done / progress.total) * 100}%` }}
-              />
+              <div className="h-full bg-primary transition-all" style={{ width: `${(progress.done / progress.total) * 100}%` }} />
             </div>
           </div>
         )}
