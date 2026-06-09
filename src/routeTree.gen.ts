@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StatisticsRouteImport } from './routes/statistics'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as OrganizerRouteImport } from './routes/organizer'
 import { Route as ImportRouteImport } from './routes/import'
 import { Route as ExtensionsRouteImport } from './routes/extensions'
 import { Route as IndexRouteImport } from './routes/index'
 
+const StatisticsRoute = StatisticsRouteImport.update({
+  id: '/statistics',
+  path: '/statistics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/import': typeof ImportRoute
   '/organizer': typeof OrganizerRoute
   '/search': typeof SearchRoute
+  '/statistics': typeof StatisticsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/import': typeof ImportRoute
   '/organizer': typeof OrganizerRoute
   '/search': typeof SearchRoute
+  '/statistics': typeof StatisticsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,27 @@ export interface FileRoutesById {
   '/import': typeof ImportRoute
   '/organizer': typeof OrganizerRoute
   '/search': typeof SearchRoute
+  '/statistics': typeof StatisticsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/extensions' | '/import' | '/organizer' | '/search'
+  fullPaths:
+    | '/'
+    | '/extensions'
+    | '/import'
+    | '/organizer'
+    | '/search'
+    | '/statistics'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/extensions' | '/import' | '/organizer' | '/search'
-  id: '__root__' | '/' | '/extensions' | '/import' | '/organizer' | '/search'
+  to: '/' | '/extensions' | '/import' | '/organizer' | '/search' | '/statistics'
+  id:
+    | '__root__'
+    | '/'
+    | '/extensions'
+    | '/import'
+    | '/organizer'
+    | '/search'
+    | '/statistics'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,10 +99,18 @@ export interface RootRouteChildren {
   ImportRoute: typeof ImportRoute
   OrganizerRoute: typeof OrganizerRoute
   SearchRoute: typeof SearchRoute
+  StatisticsRoute: typeof StatisticsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/statistics': {
+      id: '/statistics'
+      path: '/statistics'
+      fullPath: '/statistics'
+      preLoaderRoute: typeof StatisticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -125,6 +155,7 @@ const rootRouteChildren: RootRouteChildren = {
   ImportRoute: ImportRoute,
   OrganizerRoute: OrganizerRoute,
   SearchRoute: SearchRoute,
+  StatisticsRoute: StatisticsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
