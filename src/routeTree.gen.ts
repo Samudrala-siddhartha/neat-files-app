@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StatisticsRouteImport } from './routes/statistics'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as OrganizerRouteImport } from './routes/organizer'
+import { Route as LogsRouteImport } from './routes/logs'
 import { Route as ImportRouteImport } from './routes/import'
 import { Route as ExtensionsRouteImport } from './routes/extensions'
 import { Route as IndexRouteImport } from './routes/index'
@@ -29,6 +30,11 @@ const SearchRoute = SearchRouteImport.update({
 const OrganizerRoute = OrganizerRouteImport.update({
   id: '/organizer',
   path: '/organizer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogsRoute = LogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ImportRoute = ImportRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/extensions': typeof ExtensionsRoute
   '/import': typeof ImportRoute
+  '/logs': typeof LogsRoute
   '/organizer': typeof OrganizerRoute
   '/search': typeof SearchRoute
   '/statistics': typeof StatisticsRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/extensions': typeof ExtensionsRoute
   '/import': typeof ImportRoute
+  '/logs': typeof LogsRoute
   '/organizer': typeof OrganizerRoute
   '/search': typeof SearchRoute
   '/statistics': typeof StatisticsRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/extensions': typeof ExtensionsRoute
   '/import': typeof ImportRoute
+  '/logs': typeof LogsRoute
   '/organizer': typeof OrganizerRoute
   '/search': typeof SearchRoute
   '/statistics': typeof StatisticsRoute
@@ -78,16 +87,25 @@ export interface FileRouteTypes {
     | '/'
     | '/extensions'
     | '/import'
+    | '/logs'
     | '/organizer'
     | '/search'
     | '/statistics'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/extensions' | '/import' | '/organizer' | '/search' | '/statistics'
+  to:
+    | '/'
+    | '/extensions'
+    | '/import'
+    | '/logs'
+    | '/organizer'
+    | '/search'
+    | '/statistics'
   id:
     | '__root__'
     | '/'
     | '/extensions'
     | '/import'
+    | '/logs'
     | '/organizer'
     | '/search'
     | '/statistics'
@@ -97,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ExtensionsRoute: typeof ExtensionsRoute
   ImportRoute: typeof ImportRoute
+  LogsRoute: typeof LogsRoute
   OrganizerRoute: typeof OrganizerRoute
   SearchRoute: typeof SearchRoute
   StatisticsRoute: typeof StatisticsRoute
@@ -123,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/organizer'
       fullPath: '/organizer'
       preLoaderRoute: typeof OrganizerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/import': {
@@ -153,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ExtensionsRoute: ExtensionsRoute,
   ImportRoute: ImportRoute,
+  LogsRoute: LogsRoute,
   OrganizerRoute: OrganizerRoute,
   SearchRoute: SearchRoute,
   StatisticsRoute: StatisticsRoute,
