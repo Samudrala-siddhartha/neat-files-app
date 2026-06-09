@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as OrganizerRouteImport } from './routes/organizer'
 import { Route as ImportRouteImport } from './routes/import'
+import { Route as ExtensionsRouteImport } from './routes/extensions'
 import { Route as IndexRouteImport } from './routes/index'
 
 const OrganizerRoute = OrganizerRouteImport.update({
@@ -23,6 +24,11 @@ const ImportRoute = ImportRouteImport.update({
   path: '/import',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExtensionsRoute = ExtensionsRouteImport.update({
+  id: '/extensions',
+  path: '/extensions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,30 +37,34 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/extensions': typeof ExtensionsRoute
   '/import': typeof ImportRoute
   '/organizer': typeof OrganizerRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/extensions': typeof ExtensionsRoute
   '/import': typeof ImportRoute
   '/organizer': typeof OrganizerRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/extensions': typeof ExtensionsRoute
   '/import': typeof ImportRoute
   '/organizer': typeof OrganizerRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/import' | '/organizer'
+  fullPaths: '/' | '/extensions' | '/import' | '/organizer'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/import' | '/organizer'
-  id: '__root__' | '/' | '/import' | '/organizer'
+  to: '/' | '/extensions' | '/import' | '/organizer'
+  id: '__root__' | '/' | '/extensions' | '/import' | '/organizer'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ExtensionsRoute: typeof ExtensionsRoute
   ImportRoute: typeof ImportRoute
   OrganizerRoute: typeof OrganizerRoute
 }
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/extensions': {
+      id: '/extensions'
+      path: '/extensions'
+      fullPath: '/extensions'
+      preLoaderRoute: typeof ExtensionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ExtensionsRoute: ExtensionsRoute,
   ImportRoute: ImportRoute,
   OrganizerRoute: OrganizerRoute,
 }
