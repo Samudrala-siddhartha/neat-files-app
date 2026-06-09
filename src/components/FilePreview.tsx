@@ -176,8 +176,10 @@ function FileIcon({ kind }: { kind: ReturnType<typeof kindOf> }) {
 
 async function parsePdf(blob: Blob): Promise<string> {
   const pdfjs = await import("pdfjs-dist");
-  // @ts-expect-error - vite ?url import for worker
-  const workerUrl = (await import("pdfjs-dist/build/pdf.worker.mjs?url")).default;
+  const workerMod = await import(
+    /* @vite-ignore */ "pdfjs-dist/build/pdf.worker.mjs?url"
+  );
+  const workerUrl = (workerMod as { default: string }).default;
   pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
   const data = await blob.arrayBuffer();
   const doc = await pdfjs.getDocument({ data }).promise;
