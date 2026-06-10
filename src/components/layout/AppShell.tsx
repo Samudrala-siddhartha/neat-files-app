@@ -17,6 +17,8 @@ import {
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { InstallPWA } from "@/components/InstallPWA";
+import { registerAppSw } from "@/lib/pwa/register-sw";
 
 type NavItem = {
   to: string;
@@ -43,6 +45,7 @@ export function AppShell() {
 
   useEffect(() => {
     hydrate();
+    registerAppSw();
     const on = () => setOnline(true);
     const off = () => setOnline(false);
     window.addEventListener("online", on);
@@ -92,6 +95,7 @@ export function AppShell() {
           })}
         </nav>
         <div className="p-3 border-t border-sidebar-border text-xs text-muted-foreground">
+          <div className="mb-2"><InstallPWA /></div>
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5">
               {online ? (
@@ -115,7 +119,10 @@ export function AppShell() {
             </div>
             <span className="text-sm font-semibold">File Organizer Pro</span>
           </Link>
-          {!online && <WifiOff className="size-4 text-amber-500" />}
+          <div className="flex items-center gap-2">
+            <InstallPWA />
+            {!online && <WifiOff className="size-4 text-amber-500" />}
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto">
