@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useApp, formatBytes } from "@/lib/store";
 import { FilePreview, kindOf } from "@/components/FilePreview";
 import type { StoredFile } from "@/lib/storage/db";
-import { ChevronRight, Download, Eye, Trash2, FolderOpen, Package, FolderInput, CheckSquare, Square } from "lucide-react";
+import { ChevronRight, Download, Eye, Trash2, FolderOpen, Package, CheckSquare, Square } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/extensions")({
