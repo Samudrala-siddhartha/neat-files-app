@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Download, X, ScanText, Loader2, FileText, Image as ImgIcon, FileQuestion } from "lucide-react";
+import { Download, X, ScanText, Loader2, FileText, Image as ImgIcon, FileQuestion, Archive, Table as TableIcon, Presentation } from "lucide-react";
 import type { StoredFile } from "@/lib/storage/db";
 import { formatBytes } from "@/lib/store";
 
@@ -12,13 +12,23 @@ const IMAGE_EXTS = new Set(["png","jpg","jpeg","gif","webp","bmp","svg","avif","
 const AUDIO_EXTS = new Set(["mp3","wav","ogg","m4a","flac","aac","opus"]);
 const VIDEO_EXTS = new Set(["mp4","webm","mov","mkv","avi","m4v"]);
 const PDF_EXTS = new Set(["pdf"]);
+const DOCX_EXTS = new Set(["docx"]);
+const XLSX_EXTS = new Set(["xlsx", "xls", "ods"]);
+const PPTX_EXTS = new Set(["pptx"]);
+const ZIP_EXTS = new Set(["zip", "jar", "apk", "epub"]);
 
-export function kindOf(ext: string): "text" | "image" | "audio" | "video" | "pdf" | "binary" {
+export function kindOf(
+  ext: string,
+): "text" | "image" | "audio" | "video" | "pdf" | "docx" | "xlsx" | "pptx" | "zip" | "binary" {
   if (TEXT_EXTS.has(ext)) return "text";
   if (IMAGE_EXTS.has(ext)) return "image";
   if (AUDIO_EXTS.has(ext)) return "audio";
   if (VIDEO_EXTS.has(ext)) return "video";
   if (PDF_EXTS.has(ext)) return "pdf";
+  if (DOCX_EXTS.has(ext)) return "docx";
+  if (XLSX_EXTS.has(ext)) return "xlsx";
+  if (PPTX_EXTS.has(ext)) return "pptx";
+  if (ZIP_EXTS.has(ext)) return "zip";
   return "binary";
 }
 
@@ -27,6 +37,10 @@ export function FilePreview({ file, onClose }: { file: StoredFile; onClose: () =
   const [text, setText] = useState<string | null>(null);
   const [ocrText, setOcrText] = useState<string | null>(null);
   const [pdfText, setPdfText] = useState<string | null>(null);
+  const [html, setHtml] = useState<string | null>(null);
+  const [sheets, setSheets] = useState<{ name: string; rows: string[][] }[] | null>(null);
+  const [activeSheet, setActiveSheet] = useState(0);
+  const [zipEntries, setZipEntries] = useState<{ path: string; size: number; dir: boolean }[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const kind = kindOf(file.extension);
@@ -39,7 +53,8 @@ export function FilePreview({ file, onClose }: { file: StoredFile; onClose: () =
 
   useEffect(() => {
     let abort = false;
-    setText(null); setPdfText(null); setOcrText(null); setErr(null);
+    setText(null); setPdfText(null); setOcrText(null); setHtml(null);
+    setSheets(null); setActiveSheet(0); setZipEntries(null); setErr(null);
     (async () => {
       try {
         if (kind === "text") {
@@ -49,6 +64,40 @@ export function FilePreview({ file, onClose }: { file: StoredFile; onClose: () =
           setBusy("Parsing PDF…");
           const text = await parsePdf(file.blob);
           if (!abort) setPdfText(text);
+        } else if (kind === "docx") {
+          setBusy("Rendering DOCX…");
+          const mammoth = await import("mammoth");
+          const arrayBuffer = await file.blob.arrayBuffer();
+          const res = await mammoth.convertToHtml({ arrayBuffer });
+          if (!abort) setHtml(res.value || "<em>(empty document)</em>");
+        } else if (kind === "xlsx") {
+          setBusy("Parsing spreadsheet…");
+          const XLSX = await import("xlsx");
+          const buf = await file.blob.arrayBuffer();
+          const wb = XLSX.read(buf, { type: "array" });
+          const parsed = wb.SheetNames.map((n) => ({
+            name: n,
+            rows: (XLSX.utils.sheet_to_json(wb.Sheets[n], {
+              header: 1,
+              blankrows: false,
+              defval: "",
+            }) as unknown[][]).slice(0, 500).map((r) => r.map((c) => String(c ?? ""))),
+          }));
+          if (!abort) setSheets(parsed);
+        } else if (kind === "pptx") {
+          setBusy("Extracting slides…");
+          const txt = await parsePptx(file.blob);
+          if (!abort) setText(txt);
+        } else if (kind === "zip") {
+          setBusy("Reading archive…");
+          const JSZip = (await import("jszip")).default;
+          const zip = await JSZip.loadAsync(await file.blob.arrayBuffer());
+          const entries: { path: string; size: number; dir: boolean }[] = [];
+          zip.forEach((path, e) => {
+            entries.push({ path, size: (e as unknown as { _data?: { uncompressedSize?: number } })._data?.uncompressedSize ?? 0, dir: e.dir });
+          });
+          entries.sort((a, b) => a.path.localeCompare(b.path));
+          if (!abort) setZipEntries(entries);
         }
       } catch (e) {
         if (!abort) setErr(String(e));
@@ -162,6 +211,63 @@ export function FilePreview({ file, onClose }: { file: StoredFile; onClose: () =
               Preview not available for .{file.extension} files. You can still download or delete it.
             </div>
           )}
+
+          {kind === "docx" && html && (
+            <div
+              className="prose prose-sm dark:prose-invert max-w-none bg-muted/30 rounded p-4"
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+          )}
+
+          {kind === "xlsx" && sheets && sheets.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-1.5">
+                {sheets.map((s, i) => (
+                  <button
+                    key={s.name}
+                    onClick={() => setActiveSheet(i)}
+                    className={`text-xs px-2.5 py-1 rounded border ${i === activeSheet ? "bg-primary text-primary-foreground border-primary" : "border-border hover:bg-accent"}`}
+                  >
+                    {s.name}
+                  </button>
+                ))}
+              </div>
+              <div className="overflow-auto max-h-[60vh] rounded border border-border">
+                <table className="text-xs w-full">
+                  <tbody>
+                    {sheets[activeSheet].rows.map((row, ri) => (
+                      <tr key={ri} className={ri === 0 ? "bg-muted/60 font-semibold" : "odd:bg-muted/20"}>
+                        {row.map((cell, ci) => (
+                          <td key={ci} className="border border-border px-2 py-1 whitespace-nowrap">{cell}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Showing first {sheets[activeSheet].rows.length} rows of "{sheets[activeSheet].name}".
+              </div>
+            </div>
+          )}
+
+          {kind === "pptx" && text !== null && (
+            <pre className="whitespace-pre-wrap text-sm bg-muted/40 rounded p-3 max-h-[70vh] overflow-auto">{text || "(no text extracted)"}</pre>
+          )}
+
+          {kind === "zip" && zipEntries && (
+            <div className="space-y-2">
+              <div className="text-xs text-muted-foreground">{zipEntries.length} entries</div>
+              <div className="rounded border border-border divide-y divide-border max-h-[70vh] overflow-auto">
+                {zipEntries.map((e) => (
+                  <div key={e.path} className="flex items-center justify-between px-3 py-1.5 text-xs font-mono">
+                    <span className="truncate">{e.dir ? "📁 " : "📄 "}{e.path}</span>
+                    {!e.dir && <span className="text-muted-foreground ml-3">{formatBytes(e.size)}</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -170,7 +276,10 @@ export function FilePreview({ file, onClose }: { file: StoredFile; onClose: () =
 
 function FileIcon({ kind }: { kind: ReturnType<typeof kindOf> }) {
   if (kind === "image") return <ImgIcon className="size-5 text-primary" />;
-  if (kind === "text" || kind === "pdf") return <FileText className="size-5 text-primary" />;
+  if (kind === "text" || kind === "pdf" || kind === "docx") return <FileText className="size-5 text-primary" />;
+  if (kind === "xlsx") return <TableIcon className="size-5 text-primary" />;
+  if (kind === "pptx") return <Presentation className="size-5 text-primary" />;
+  if (kind === "zip") return <Archive className="size-5 text-primary" />;
   return <FileQuestion className="size-5 text-muted-foreground" />;
 }
 
@@ -192,4 +301,23 @@ async function parsePdf(blob: Blob): Promise<string> {
   }
   if (doc.numPages > max) out.push(`\n… (${doc.numPages - max} more pages truncated)`);
   return out.join("\n\n").trim() || "(no embedded text — try OCR on a rendered page)";
+}
+
+async function parsePptx(blob: Blob): Promise<string> {
+  const JSZip = (await import("jszip")).default;
+  const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+  const slideFiles = Object.keys(zip.files)
+    .filter((p) => /^ppt\/slides\/slide\d+\.xml$/.test(p))
+    .sort((a, b) => {
+      const na = Number(a.match(/slide(\d+)/)?.[1] ?? 0);
+      const nb = Number(b.match(/slide(\d+)/)?.[1] ?? 0);
+      return na - nb;
+    });
+  const out: string[] = [];
+  for (let i = 0; i < slideFiles.length; i++) {
+    const xml = await zip.files[slideFiles[i]].async("string");
+    const texts = Array.from(xml.matchAll(/<a:t[^>]*>([^<]*)<\/a:t>/g)).map((m) => m[1]);
+    out.push(`── Slide ${i + 1} ──\n${texts.join("\n") || "(no text)"}`);
+  }
+  return out.join("\n\n");
 }
