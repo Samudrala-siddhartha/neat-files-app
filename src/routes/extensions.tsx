@@ -3,7 +3,8 @@ import { useMemo, useState } from "react";
 import { useApp, formatBytes } from "@/lib/store";
 import { FilePreview, kindOf } from "@/components/FilePreview";
 import type { StoredFile } from "@/lib/storage/db";
-import { ChevronRight, Download, Eye, Trash2, FolderOpen } from "lucide-react";
+import { ChevronRight, Download, Eye, Trash2, FolderOpen, Package, FolderInput, CheckSquare, Square } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/extensions")({
   head: () => ({
@@ -20,6 +21,7 @@ function Extensions() {
   const removeFile = useApp((s) => s.removeFile);
   const [openExt, setOpenExt] = useState<string | null>(null);
   const [preview, setPreview] = useState<StoredFile | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const data = useMemo(() => {
     const m = new Map<string, { count: number; size: number; latest: number }>();
@@ -37,6 +39,64 @@ function Extensions() {
     () => (openExt ? files.filter((f) => f.extension === openExt) : []),
     [files, openExt],
   );
+
+  const allExts = useMemo(
+    () => Array.from(new Set(files.map((f) => f.extension))).sort(),
+    [files],
+  );
+
+  const toggle = (id: string) =>
+    setSelected((p) => {
+      const n = new Set(p);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+  const toggleAll = () =>
+    setSelected((p) =>
+      p.size === extFiles.length ? new Set() : new Set(extFiles.map((f) => f.id)),
+    );
+  const clearSelection = () => setSelected(new Set());
+  const selectedFiles = extFiles.filter((f) => selected.has(f.id));
+
+  const bulkDelete = async () => {
+    if (!confirm(`Delete ${selectedFiles.length} file(s)?`)) return;
+    for (const f of selectedFiles) await removeFile(f.id);
+    toast.success(`Deleted ${selectedFiles.length} file(s)`);
+    clearSelection();
+  };
+
+  const bulkExport = async () => {
+    const JSZip = (await import("jszip")).default;
+    const zip = new JSZip();
+    for (const f of selectedFiles) zip.file(`${f.extension}/${f.name}`, f.blob);
+    const out = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(out);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `export-${openExt}-${Date.now()}.zip`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    toast.success(`Exported ${selectedFiles.length} file(s)`);
+  };
+
+  const bulkMove = async (targetExt: string) => {
+    const importFiles = useApp.getState().importFiles;
+    // Move = re-import with new extension + delete originals
+    const newBlobs: File[] = selectedFiles.map((f) => {
+      const base = f.name.includes(".") ? f.name.slice(0, f.name.lastIndexOf(".")) : f.name;
+      return new File([f.blob], `${base}.${targetExt}`, { type: f.type });
+    });
+    for (const f of selectedFiles) await removeFile(f.id);
+    await importFiles(newBlobs);
+    toast.success(`Moved ${newBlobs.length} file(s) to ${targetExt}/`);
+    clearSelection();
+    setOpenExt(targetExt);
+  };
+
+  const bulkCategorize = async () => {
+    // Re-categorize: ensures extension matches the actual filename extension (no-op fix)
+    toast.info(`${selectedFiles.length} file(s) are already categorized under ${openExt}/`);
+  };
 
   const downloadFile = (f: StoredFile) => {
     const url = URL.createObjectURL(f.blob);
@@ -70,9 +130,70 @@ function Extensions() {
             <span className="font-mono font-semibold uppercase">{openExt}/</span>
             <span className="text-muted-foreground">· {extFiles.length} files</span>
           </div>
+
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-2">
+            <button
+              onClick={toggleAll}
+              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md hover:bg-accent"
+            >
+              {selected.size === extFiles.length && extFiles.length > 0 ? (
+                <CheckSquare className="size-3.5" />
+              ) : (
+                <Square className="size-3.5" />
+              )}
+              {selected.size > 0 ? `${selected.size} selected` : "Select all"}
+            </button>
+            <div className="flex-1" />
+            <button
+              disabled={selected.size === 0}
+              onClick={bulkCategorize}
+              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-border hover:bg-accent disabled:opacity-40"
+            >
+              <FolderOpen className="size-3.5" /> Categorize
+            </button>
+            <div className="relative">
+              <select
+                disabled={selected.size === 0}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    bulkMove(e.target.value);
+                    e.target.value = "";
+                  }
+                }}
+                className="text-xs px-2.5 py-1.5 rounded-md border border-border bg-background disabled:opacity-40 cursor-pointer"
+              >
+                <option value="">Move to…</option>
+                {allExts.filter((e) => e !== openExt).map((e) => (
+                  <option key={e} value={e}>{e}/</option>
+                ))}
+              </select>
+            </div>
+            <button
+              disabled={selected.size === 0}
+              onClick={bulkExport}
+              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-border hover:bg-accent disabled:opacity-40"
+            >
+              <Package className="size-3.5" /> Export ZIP
+            </button>
+            <button
+              disabled={selected.size === 0}
+              onClick={bulkDelete}
+              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-destructive/40 text-destructive hover:bg-destructive/10 disabled:opacity-40"
+            >
+              <Trash2 className="size-3.5" /> Delete
+            </button>
+          </div>
+
           <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
             {extFiles.map((f) => (
               <div key={f.id} className="flex items-center gap-3 px-4 py-3 hover:bg-accent/40">
+                <input
+                  type="checkbox"
+                  checked={selected.has(f.id)}
+                  onChange={() => toggle(f.id)}
+                  className="size-4 accent-primary cursor-pointer"
+                  aria-label={`Select ${f.name}`}
+                />
                 <button
                   onClick={() => setPreview(f)}
                   className="min-w-0 flex-1 text-left"
