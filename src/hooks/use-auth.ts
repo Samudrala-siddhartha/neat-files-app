@@ -36,6 +36,6 @@ export async function logActivity(
     category,
     action,
     detail: detail ?? null,
-    metadata: metadata ?? null,
+    metadata: (metadata ?? null) as never,
   });
 }
