@@ -163,6 +163,20 @@ export const useApp = create<State>((set, get) => ({
     };
     await putLog(entry);
     set({ logs: [entry, ...get().logs].slice(0, 2000) });
+    // Mirror meaningful events to remote activity history when signed in.
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        await supabase.from("activity_history").insert({
+          user_id: data.user.id,
+          category,
+          action: level,
+          detail: message,
+        });
+      }
+    } catch {
+      // best-effort: never block local logging on remote errors
+    }
   },
 
   clearLogs: async () => {
