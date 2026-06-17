@@ -15,6 +15,7 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as OrganizerRouteImport } from './routes/organizer'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as ImportRouteImport } from './routes/import'
+import { Route as HistoryRouteImport } from './routes/history'
 import { Route as ExtensionsRouteImport } from './routes/extensions'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AccountRouteImport } from './routes/account'
@@ -51,6 +52,11 @@ const ImportRoute = ImportRouteImport.update({
   path: '/import',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExtensionsRoute = ExtensionsRouteImport.update({
   id: '/extensions',
   path: '/extensions',
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/extensions': typeof ExtensionsRoute
+  '/history': typeof HistoryRoute
   '/import': typeof ImportRoute
   '/logs': typeof LogsRoute
   '/organizer': typeof OrganizerRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/extensions': typeof ExtensionsRoute
+  '/history': typeof HistoryRoute
   '/import': typeof ImportRoute
   '/logs': typeof LogsRoute
   '/organizer': typeof OrganizerRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/extensions': typeof ExtensionsRoute
+  '/history': typeof HistoryRoute
   '/import': typeof ImportRoute
   '/logs': typeof LogsRoute
   '/organizer': typeof OrganizerRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/auth'
     | '/extensions'
+    | '/history'
     | '/import'
     | '/logs'
     | '/organizer'
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/auth'
     | '/extensions'
+    | '/history'
     | '/import'
     | '/logs'
     | '/organizer'
@@ -151,6 +162,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/auth'
     | '/extensions'
+    | '/history'
     | '/import'
     | '/logs'
     | '/organizer'
@@ -165,6 +177,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   AuthRoute: typeof AuthRoute
   ExtensionsRoute: typeof ExtensionsRoute
+  HistoryRoute: typeof HistoryRoute
   ImportRoute: typeof ImportRoute
   LogsRoute: typeof LogsRoute
   OrganizerRoute: typeof OrganizerRoute
@@ -217,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/extensions': {
       id: '/extensions'
       path: '/extensions'
@@ -261,6 +281,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   AuthRoute: AuthRoute,
   ExtensionsRoute: ExtensionsRoute,
+  HistoryRoute: HistoryRoute,
   ImportRoute: ImportRoute,
   LogsRoute: LogsRoute,
   OrganizerRoute: OrganizerRoute,

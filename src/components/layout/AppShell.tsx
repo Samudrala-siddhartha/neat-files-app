@@ -13,12 +13,16 @@ import {
   WifiOff,
   Wifi,
   HardDrive,
+  History as HistoryIcon,
+  LogIn,
+  UserCircle2,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { InstallPWA } from "@/components/InstallPWA";
 import { registerAppSw } from "@/lib/pwa/register-sw";
+import { useAuth } from "@/hooks/use-auth";
 
 type NavItem = {
   to: string;
@@ -33,6 +37,7 @@ const NAV: NavItem[] = [
   { to: "/organizer", label: "Organizer", icon: FolderTree },
   { to: "/extensions", label: "Extensions", icon: Layers },
   { to: "/search", label: "Search", icon: Search },
+  { to: "/history", label: "History", icon: HistoryIcon },
   { to: "/statistics", label: "Statistics", icon: BarChart3 },
   { to: "/logs", label: "Logs", icon: ScrollText },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
@@ -42,6 +47,7 @@ const NAV: NavItem[] = [
 export function AppShell() {
   const { hydrate, ready, online, setOnline, files } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { user } = useAuth();
 
   useEffect(() => {
     hydrate();
@@ -96,6 +102,26 @@ export function AppShell() {
         </nav>
         <div className="p-3 border-t border-sidebar-border text-xs text-muted-foreground">
           <div className="mb-2"><InstallPWA /></div>
+          <div className="mb-2">
+            {user ? (
+              <Link
+                to="/account"
+                className="flex items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 hover:bg-accent"
+              >
+                <div className="size-6 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 grid place-items-center text-white text-[10px] font-semibold">
+                  {(user.email ?? "?").slice(0, 1).toUpperCase()}
+                </div>
+                <span className="truncate text-foreground">{user.email}</span>
+              </Link>
+            ) : (
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 text-primary px-2.5 py-1.5 font-medium hover:bg-primary/20"
+              >
+                <LogIn className="size-3.5" /> Sign in
+              </Link>
+            )}
+          </div>
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5">
               {online ? (
@@ -121,6 +147,13 @@ export function AppShell() {
           </Link>
           <div className="flex items-center gap-2">
             <InstallPWA />
+            <Link
+              to={user ? "/account" : "/auth"}
+              aria-label={user ? "Account" : "Sign in"}
+              className="p-1.5 rounded-md hover:bg-accent text-muted-foreground"
+            >
+              {user ? <UserCircle2 className="size-5" /> : <LogIn className="size-5" />}
+            </Link>
             {!online && <WifiOff className="size-4 text-amber-500" />}
           </div>
         </header>
