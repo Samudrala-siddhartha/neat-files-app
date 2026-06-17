@@ -15,7 +15,10 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as OrganizerRouteImport } from './routes/organizer'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as ImportRouteImport } from './routes/import'
+import { Route as HistoryRouteImport } from './routes/history'
 import { Route as ExtensionsRouteImport } from './routes/extensions'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -49,9 +52,24 @@ const ImportRoute = ImportRouteImport.update({
   path: '/import',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExtensionsRoute = ExtensionsRouteImport.update({
   id: '/extensions',
   path: '/extensions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -68,7 +86,10 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account': typeof AccountRoute
+  '/auth': typeof AuthRoute
   '/extensions': typeof ExtensionsRoute
+  '/history': typeof HistoryRoute
   '/import': typeof ImportRoute
   '/logs': typeof LogsRoute
   '/organizer': typeof OrganizerRoute
@@ -79,7 +100,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account': typeof AccountRoute
+  '/auth': typeof AuthRoute
   '/extensions': typeof ExtensionsRoute
+  '/history': typeof HistoryRoute
   '/import': typeof ImportRoute
   '/logs': typeof LogsRoute
   '/organizer': typeof OrganizerRoute
@@ -91,7 +115,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account': typeof AccountRoute
+  '/auth': typeof AuthRoute
   '/extensions': typeof ExtensionsRoute
+  '/history': typeof HistoryRoute
   '/import': typeof ImportRoute
   '/logs': typeof LogsRoute
   '/organizer': typeof OrganizerRoute
@@ -104,7 +131,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/account'
+    | '/auth'
     | '/extensions'
+    | '/history'
     | '/import'
     | '/logs'
     | '/organizer'
@@ -115,7 +145,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/account'
+    | '/auth'
     | '/extensions'
+    | '/history'
     | '/import'
     | '/logs'
     | '/organizer'
@@ -126,7 +159,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/account'
+    | '/auth'
     | '/extensions'
+    | '/history'
     | '/import'
     | '/logs'
     | '/organizer'
@@ -138,7 +174,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AccountRoute: typeof AccountRoute
+  AuthRoute: typeof AuthRoute
   ExtensionsRoute: typeof ExtensionsRoute
+  HistoryRoute: typeof HistoryRoute
   ImportRoute: typeof ImportRoute
   LogsRoute: typeof LogsRoute
   OrganizerRoute: typeof OrganizerRoute
@@ -191,11 +230,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/extensions': {
       id: '/extensions'
       path: '/extensions'
       fullPath: '/extensions'
       preLoaderRoute: typeof ExtensionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -218,7 +278,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AccountRoute: AccountRoute,
+  AuthRoute: AuthRoute,
   ExtensionsRoute: ExtensionsRoute,
+  HistoryRoute: HistoryRoute,
   ImportRoute: ImportRoute,
   LogsRoute: LogsRoute,
   OrganizerRoute: OrganizerRoute,
@@ -229,13 +292,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
